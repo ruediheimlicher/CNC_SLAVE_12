@@ -1082,9 +1082,7 @@ void AnschlagVonMotor(const uint8_t motor)
             
             ladeposition=0;
             motorstatus=0;
-            
-            
-            
+             
             sendbuffer[5]=abschnittnummer;
             sendbuffer[6]=ladeposition;
             sendbuffer[8] = cncstatus;
@@ -1176,6 +1174,7 @@ void gohome(void)
          CNCDaten[k][i]=0;  
       }
    }
+   
    CNCDaten[0][0] = 14;// schritteax lb
    CNCDaten[0][1] = 8;// schritteax hb
    CNCDaten[0][4] = 14;// delayax lb
@@ -1601,11 +1600,16 @@ uint16_t count=0;
             {
                CounterA = 0;
                CounterB = 0;
+               CounterC = 0;
+               CounterD = 0;
                ringbufferstatus = 0;
                cncstatus=0;
                motorstatus=0;
                StepCounterA=0;
-               CounterA=0;
+               StepCounterB=0;
+               StepCounterC=0;
+               StepCounterD=0;
+              
                AbschnittCounter=0;
                
             }break;
@@ -2076,7 +2080,7 @@ uint16_t count=0;
                      sendbuffer[0]=0xAD;
                      sendbuffer[5]=abschnittnummer;
                      sendbuffer[6]=ladeposition;
- //                    sendbuffer[7]=(ladeposition & 0xFF00) >> 8;
+                 //    sendbuffer[7]=(ladeposition & 0xFF00) >> 8;
                      sendbuffer[8] = cncstatus;
                      usb_rawhid_send((void*)sendbuffer, 50);
                      ladeposition=0;
@@ -2173,13 +2177,21 @@ uint16_t count=0;
             // Begin Ringbuffer-Stuff
             if (abschnittnummer==endposition)
             {  
+               if (cncstatus & (1<<GO_HOME))
+               {
+               homestatus |= (1<<COUNT_B);
+               }
+
                cli();
    
                ringbufferstatus = 0;
                cncstatus=0;
-               motorstatus=0;
+               motorstatus &= ~(1<< COUNT_B);
                sendbuffer[0]=0xAD;
-               sendbuffer[1]=abschnittnummer;
+               
+               sendbuffer[5]=abschnittnummer;
+               sendbuffer[6]=ladeposition;
+               sendbuffer[8] = cncstatus;
                usb_rawhid_send((void*)sendbuffer, 50);
                ladeposition=0;
                sei();
@@ -2379,13 +2391,21 @@ uint16_t count=0;
             // Begin Ringbuffer-Stuff
             if (abschnittnummer==endposition)
             {  
+               if (cncstatus & (1<<GO_HOME))
+               {
+               homestatus |= (1<<COUNT_D);
+               }
+
                cli();
                
                ringbufferstatus = 0;
                cncstatus=0;
-               motorstatus=0;
+               motorstatus &= ~(1<< COUNT_D);
                sendbuffer[0]=0xAD;
-               sendbuffer[1]=abschnittnummer;
+               sendbuffer[5]=abschnittnummer;
+               sendbuffer[6]=ladeposition;
+               
+               sendbuffer[8] = cncstatus;
                usb_rawhid_send((void*)sendbuffer, 50);
                ladeposition=0;
                sei();
