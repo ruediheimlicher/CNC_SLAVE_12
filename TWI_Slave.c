@@ -2076,6 +2076,8 @@ uint16_t count=0;
                      cncstatus=0;
                      // home: 
                      motorstatus &= ~(1<< COUNT_A);
+                     motorstatus=0;
+                     
                      
                      sendbuffer[0]=0xAD;
                      sendbuffer[5]=abschnittnummer;
@@ -2187,6 +2189,9 @@ uint16_t count=0;
                ringbufferstatus = 0;
                cncstatus=0;
                motorstatus &= ~(1<< COUNT_B);
+               
+               motorstatus=0;
+               
                sendbuffer[0]=0xAD;
                
                sendbuffer[5]=abschnittnummer;
