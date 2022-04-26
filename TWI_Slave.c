@@ -972,9 +972,11 @@ void AnschlagVonMotor(const uint8_t motor)
    //return;
    lcd_gotoxy(0,0);
    lcd_putc('M');
+   lcd_putint1(motor);
    lcd_gotoxy(2+2*motor,1);
    lcd_puthex(motor);
-   lcd_puthex(richtung);
+   lcd_putc('R');
+   lcd_putint1(richtung); //  Bit 7 von dataH,  in Abschnittladen bestimmt, negative zahl
    if (richtung & (1<<(RICHTUNG_A + motor))) // Richtung ist auf Anschlag A0 zu         
    {
       // MARK: END_A0 + motor
@@ -1055,7 +1057,7 @@ void AnschlagVonMotor(const uint8_t motor)
  //           lcd_puthex(STEPPERPIN_1);
 //            lcd_puthex(STEPPERPIN_2);
          } // end HOME
-         else           // beide Seiten abstellen
+         else           // beide Seiten abstellen, Vorgang unterbrechen
          {    
             lcd_gotoxy(15,0);
             lcd_puts("both");
@@ -1079,6 +1081,10 @@ void AnschlagVonMotor(const uint8_t motor)
             StepCounterC=0;
             StepCounterD=0;
             
+            CounterA = 0;
+            CounterB = 0;
+            CounterC = 0;
+            CounterD = 0;
             
             ladeposition=0;
             motorstatus=0;
@@ -1110,7 +1116,7 @@ void AnschlagVonMotor(const uint8_t motor)
       if (!(anschlagstatus &(1<< (END_A0 + motor))))
          
       {
-         anschlagstatus &= ~(1<< (END_A0 + motor)); // Bit fuer Anschlag B0 zuruecksetzen
+         anschlagstatus &= ~(1<< (END_A0 + motor)); // Bit fuer Anschlag X0 zuruecksetzen
       }
       
    }
@@ -1283,6 +1289,8 @@ void AbschnittEndVonMotor(const uint8_t derstatus) // 0 - 3 fuer A - D   52 us
    OSZIBLO;
    if (abschnittnummer==endposition) // Serie fertig
    {  
+      lcd_gotoxy(0,3);
+      lcd_putc('E');
       ringbufferstatus = 0;
       anschlagstatus=0;
       anschlagstatus &= ~(1<< (END_A0 + motor)); // Bit fuer Anschlag Ax zuruecksetzen
@@ -1970,7 +1978,7 @@ uint16_t count=0;
       {         
          lcd_gotoxy(0,2);
          lcd_putc('A');
- 
+         lcd_putc('0');
          AnschlagVonMotor(0);
       }
       
@@ -1991,6 +1999,7 @@ uint16_t count=0;
       {
          lcd_gotoxy(0,2);
          lcd_putc('B');
+         lcd_putc('0');
 
          AnschlagVonMotor(1);
       } // end Anschlag B0
@@ -2017,6 +2026,7 @@ uint16_t count=0;
       {
          lcd_gotoxy(0,3);
          lcd_putc('C');
+         lcd_putc('0');
  
          AnschlagVonMotor(2);
       }
@@ -2039,6 +2049,7 @@ uint16_t count=0;
       {
          lcd_gotoxy(0,3);
          lcd_putc('D');
+         lcd_putc('0');
          AnschlagVonMotor(3);
       }
 
