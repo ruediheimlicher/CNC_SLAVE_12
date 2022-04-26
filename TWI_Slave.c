@@ -189,7 +189,8 @@ volatile uint8_t           cncstatus=0x00;
 
 volatile uint8_t           usbstatus=0x00;
 static volatile uint8_t    motorstatus=0x00;
-static volatile uint8_t    anschlagstatus=0x00;
+volatile uint8_t    anschlagstatus=0x00;
+volatile uint8_t    anschlagcounter=0;
 
 #define USB_SEND  0 
 
@@ -457,6 +458,9 @@ ISR(TIMER2_COMP_vect) // Schaltet Impuls an SERVOPIN0 aus
 uint8_t  AbschnittLaden_4M(const uint8_t* AbschnittDaten) // 22us
 {
    stopTimer2();
+   lcd_gotoxy(15,0);
+   lcd_puts("    ");
+   
 	uint8_t returnwert=0;
 // MARK: mark Reihenfolge der Daten
 	/*			
@@ -967,33 +971,25 @@ uint8_t  AbschnittLaden(const uint8_t* AbschnittDaten)
 
 
 
-void AnschlagVonMotor(const uint8_t motor)
+void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
 {
-   //return;
-   lcd_gotoxy(0,0);
-   lcd_putc('M');
-   lcd_putint1(motor);
-   lcd_gotoxy(2+2*motor,1);
-   lcd_puthex(motor);
-   lcd_putc('R');
-   lcd_putint1(richtung); //  Bit 7 von dataH,  in Abschnittladen bestimmt, negative zahl
-   if (richtung & (1<<(RICHTUNG_A + motor))) // Richtung ist auf Anschlag A0 zu         
+    if (richtung & (1<<(RICHTUNG_A + motor))) // Richtung war auf Anschlag A0 zu         
    {
-      // MARK: END_A0 + motor
-      if (!(anschlagstatus &(1<< (END_A0 + motor)))) // END_A0 6
+      anschlagcounter ++;
+       // MARK: END_A0 + motor
+      if (!(anschlagstatus &(1<< (END_A0 + motor)))) // Bit noch nicht gesetzt
       {
          cli();
          
          anschlagstatus |= (1<< (END_A0 + motor));      // Bit fuer Anschlag A0+motor setzen
-   //      lcd_gotoxy(0,2);
-   //      lcd_putc('A');
-   //      lcd_putint16(StepCounterA);
-   //      lcd_putc(' ');
-    //     lcd_putint(DelayA);
-         
+         anschlagstatus |= (1<< (END_A0 + motor + 4)); 
+ //        lcd_gotoxy(10,1);
+ //        lcd_putc('A');
+ //        lcd_puthex(anschlagstatus);
+          
          if (cncstatus & (1<<GO_HOME)) // nur eigene Seite abstellen
          {
-            lcd_putc(' ');
+            lcd_gotoxy(15,0);
             lcd_puts("home");
            // Zuerst horizonal auf Anschlag
             switch (motor) // Stepperport 1
@@ -1081,11 +1077,12 @@ void AnschlagVonMotor(const uint8_t motor)
             StepCounterC=0;
             StepCounterD=0;
             
+            /*
             CounterA = 0;
             CounterB = 0;
             CounterC = 0;
             CounterD = 0;
-            
+            */
             ladeposition=0;
             motorstatus=0;
              
@@ -1094,12 +1091,7 @@ void AnschlagVonMotor(const uint8_t motor)
             sendbuffer[8] = cncstatus;
             usb_rawhid_send((void*)sendbuffer, 50);
             sei();
-            
-            
-            //ladeposition=0;
-            // motorstatus=0;
-            richtung &= ~(1<<(RICHTUNG_A + motor)); // Richtung umschalten
-            //richtung ^= (1<<(RICHTUNG_A + motor)); // Richtung umschalten
+             richtung &= ~(1<<(RICHTUNG_A + motor)); // Richtung umschalten
            
          } // both
          
@@ -1110,13 +1102,15 @@ void AnschlagVonMotor(const uint8_t motor)
          
       }
       
-   }
-   else 
+   } // richtung war auf Anschlag zu
+   else  // richtung ist von Anschlag weg
    {
-      if (!(anschlagstatus &(1<< (END_A0 + motor))))
-         
+       if (!(anschlagstatus &(1<< (END_A0 + motor))))
       {
          anschlagstatus &= ~(1<< (END_A0 + motor)); // Bit fuer Anschlag X0 zuruecksetzen
+      }
+      else
+      {
       }
       
    }
@@ -1466,6 +1460,11 @@ uint16_t count=0;
          loopcount1+=1;
          LOOPLEDPORT ^=(1<<LOOPLED);
          PORTD ^= (1<<PORTD6);
+         
+         lcd_gotoxy(10,3);
+         lcd_putint1(richtung);
+         lcd_putc(' ');
+         lcd_putint(anschlagcounter);
    /*      
          lcd_gotoxy(0,3);
          lcd_putc('H');
@@ -1749,6 +1748,7 @@ uint16_t count=0;
                
                if (abschnittnummer==0)
                {
+                  anschlagstatus &= ~(1<< END_A0);
                 //  lcd_clr_line(1);
                   cli();
                   /*
@@ -1969,18 +1969,16 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_A0))
          {
             anschlagstatus &= ~(1<< END_A0); // Bit fuer Anschlag A0 zuruecksetzen
-            lcd_gotoxy(0,2);
-            lcd_putc(' ');
-         
+            lcd_gotoxy(15,0);
+            lcd_puts("    ");
+
          }
       }
       else // Schlitten bewegte sich auf Anschlag zu und ist am Anschlag A0
       {         
-         lcd_gotoxy(0,2);
-         lcd_putc('A');
-         lcd_putc('0');
-         AnschlagVonMotor(0);
+          AnschlagVonMotor(0);
       }
+      
       
       // **************************************
       // * Anschlag Motor B *
@@ -1991,15 +1989,13 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_B0))
          {
             anschlagstatus &= ~(1<< END_B0); // Bit fuer Anschlag B0 zuruecksetzen
-            lcd_gotoxy(0,2);
-            lcd_putc(' ');
-         }
+          }
       }
       else // Schlitten bewegte sich auf Anschlag zu und ist am Anschlag B0
       {
-         lcd_gotoxy(0,2);
-         lcd_putc('B');
-         lcd_putc('0');
+        // lcd_gotoxy(0,2);
+        // lcd_putc('B');
+       //  lcd_putc('0');
 
          AnschlagVonMotor(1);
       } // end Anschlag B0
