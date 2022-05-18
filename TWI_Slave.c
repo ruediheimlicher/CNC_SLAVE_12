@@ -226,7 +226,7 @@ volatile uint8_t richtung=0;
 
 volatile uint8_t homestatus=0;
 
-char str[32] = "A";
+//char str[32] = "A";
 
 
 void startTimer2(void)
@@ -1996,7 +1996,7 @@ uint16_t count=0;
          lcd_putc('A');
         lcd_putc('0');
          char ch = 'A';
-         strncat(str, &ch, 1);
+//         strncat(str, &ch, 1);
          
           AnschlagVonMotor(0);
       }
@@ -2022,7 +2022,7 @@ uint16_t count=0;
         lcd_putc('B');
        lcd_putc('0');
          char ch = 'B';
-         strncat(str, &ch, 1);
+   //      strncat(str, &ch, 1);
  
          AnschlagVonMotor(1);
       } // end Anschlag B0
@@ -2052,7 +2052,7 @@ uint16_t count=0;
          lcd_putc('C');
          lcd_putc('0');
          char ch = 'C';
-         strncat(str, &ch, 1);
+ //        strncat(str, &ch, 1);
  
          AnschlagVonMotor(2);
       }
@@ -2078,7 +2078,7 @@ uint16_t count=0;
          lcd_putc('D');
          lcd_putc('0');
          char ch = 'D';
-         strncat(str, &ch, 1);
+  //       strncat(str, &ch, 1);
  
          AnschlagVonMotor(3);
       }
