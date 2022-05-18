@@ -1095,7 +1095,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             usb_rawhid_send((void*)sendbuffer, 50);
             sei();
             
-            cncstatus &= ~(1<<GO_HOME);
+  //          cncstatus &= ~(1<<GO_HOME);
             
             
             
@@ -1569,7 +1569,7 @@ uint16_t count=0;
       }
 
       
-// MARK: mark start_usb
+// MARK: start_usb
        /**   Begin USB-routinen   ***********************/
       
         // Start USB
@@ -1734,6 +1734,7 @@ uint16_t count=0;
             }break;
               
                // 220516: nicht mehr gesetzt, zeigt Endmarkierung sonst nicht an
+// MARK: F0
             case 0xF0:// cncstatus fuer go_home setzen
                {
                   lcd_gotoxy(0,0);
