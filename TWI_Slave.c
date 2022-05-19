@@ -658,30 +658,7 @@ uint8_t  AbschnittLaden_4M(const uint8_t* AbschnittDaten) // 22us
    motorstatus = AbschnittDaten[21];
    
    startTimer2();
-   
-   /*
-   lcd_gotoxy(0,0);
-   lcd_putc('A');
-   lcd_putint12(StepCounterA);
-   lcd_putc(' ');
-   lcd_putint12(CounterA);
-   lcd_gotoxy(0,1);
-   lcd_putc('B');
-   lcd_putint12(StepCounterB);
-   lcd_putc(' ');
-   lcd_putint12(CounterA);
-   lcd_gotoxy(0,2);
-   lcd_putc('C');
-   lcd_putint12(StepCounterC);
-   lcd_putc(' ');
-   lcd_putint12(CounterC);
-   lcd_gotoxy(0,3);
-   lcd_putc('D');
-   lcd_putint12(StepCounterD);
-   lcd_putc(' ');
-   lcd_putint12(CounterD);
-*/
-   return returnwert;
+    return returnwert;
    
    // Nicht mehr verwendet, wird in Stepper berechnet
    if (StepCounterA > StepCounterB) 
