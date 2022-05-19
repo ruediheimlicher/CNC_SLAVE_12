@@ -171,7 +171,7 @@ volatile uint8_t liniencounter= 0;
 #define DC                  7    // DC ON: HI
 #define STROM               4    // Stepperstrom Generell ON: LO
 
-#define GO_HOME            3     // Bit fuer befehl beginn home auf cncstatus
+#define GO_HOME           7     // Bit fuer befehl beginn home auf cncstatus
 #define DC_DIVIDER         1      // teilt die pwm-Frequenz in ISR
 
 volatile uint8_t timer0startwert=TIMER0_STARTWERT;
@@ -992,7 +992,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
          if (cncstatus & (1<<GO_HOME)) // nur eigene Seite abstellen
          {
    // ********************************* Start HOME *****************
-            // Zuerst kommt der Schlitten am Anschalg A an
+            // Zuerst kommt der Schlitten am Anschalg A oder C an
             
             lcd_gotoxy(15,0);
             lcd_puts("home");
@@ -1017,18 +1017,20 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             {
                lcd_gotoxy(0,2);
                
-               lcd_puts("P1 Motor");
+               lcd_puts("P1 M");
                lcd_putint1(motor);
 
                STEPPERPORT_1 |= (1<<(MA_EN + motor));     // Motor 0 ODER 1 OFF // andere Richtung kommt anschliessend von master
                
                if (anschlagstatus &(1<< END_A0)) // Anschlag von Motor A               
                {
-                  lcd_puts(" A0");
+                  lcd_gotoxy(6,3);
+                  lcd_puts("A0");
                   StepCounterA=0; 
                   if (anschlagstatus &(1<< END_B0)) // Anschlag von Motor B, NACH Motor A
                   {
-                     lcd_puts(" B0");
+                     lcd_gotoxy(8,3);
+                     lcd_puts("B0");
                      StepCounterB=0; 
                   }
                }
@@ -1041,7 +1043,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             else // Stepperport 2
             {
                lcd_gotoxy(0,3);
-               lcd_puts("P2 Motor");
+               lcd_puts("P2 M");
                lcd_putint1(motor);
                
 
@@ -1050,16 +1052,17 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
                
                if (anschlagstatus &(1<< END_C0)) // Anschlag von Motor C               
                {
-                  lcd_puts(" C0");
+                  lcd_gotoxy(6,3);
+                  lcd_puts("C0");
                   StepCounterC=0; 
                   if (anschlagstatus &(1<< END_D0)) // Anschlag von Motor D, NACH Motor C
                   {
-                     lcd_puts(" D0");
+                     lcd_gotoxy(8,3);
+                     lcd_puts("D0");
                      StepCounterD=0; 
                   }
                }
-
-               
+              
               // StepCounterD=0;
                //               CounterC=0xFFFF;
                //               CounterD=0xFFFF;
@@ -1091,6 +1094,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             sendbuffer[30] = StepCounterD & 0x00FF;
             lcd_gotoxy(0,0);
             lcd_puts("code ");
+            lcd_gotoxy(6+motor,0);
             lcd_puthex(sendbuffer[0]);
             usb_rawhid_send((void*)sendbuffer, 50);
             sei();
@@ -1140,7 +1144,9 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             sendbuffer[22] = cncstatus;
             lcd_gotoxy(0,0);
             lcd_puts("code ");
+            lcd_gotoxy(6+motor,0);
             lcd_puthex(sendbuffer[0]);
+
             usb_rawhid_send((void*)sendbuffer, 50);
             sei();
              richtung &= ~(1<<(RICHTUNG_A + motor)); // Richtung umschalten
@@ -1737,6 +1743,7 @@ uint16_t count=0;
 // MARK: F0
             case 0xF0:// cncstatus fuer go_home setzen
                {
+                  lcd_cls();
                   lcd_gotoxy(0,0);
                   lcd_puts("HOME");
                   
@@ -1746,7 +1753,7 @@ uint16_t count=0;
                   
                   ladeposition=0;
                   endposition=0xFFFF;
-                  cncstatus = 0;
+         //         cncstatus = 0;
                   motorstatus = 0;
                   ringbufferstatus=0x00;
                   anschlagstatus=0;
@@ -1978,8 +1985,8 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_A0))
          {
             anschlagstatus &= ~(1<< END_A0); // Bit fuer Anschlag A0 zuruecksetzen
-            //lcd_gotoxy(12,2);
-            //lcd_puts("    ");
+            lcd_gotoxy(12,2);
+            lcd_puts("  ");
 
          }
       }
@@ -2002,8 +2009,8 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_B0))
          {
             anschlagstatus &= ~(1<< END_B0); // Bit fuer Anschlag B0 zuruecksetzen
-            //lcd_gotoxy(12,2);
-            //lcd_puts("    ");
+            lcd_gotoxy(16,2);
+            lcd_puts("  ");
 
          }
       }
@@ -2029,8 +2036,8 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_C0))
          {
             anschlagstatus &= ~(1<< END_C0); // Bit fuer Anschlag C0 zuruecksetzen
-            //lcd_gotoxy(12,3);
-            //lcd_puts("    ");
+            lcd_gotoxy(12,3);
+            lcd_puts("  ");
 
 
          }         
@@ -2054,8 +2061,8 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_D0))
          {
             anschlagstatus &= ~(1<< END_D0); // Bit fuer Anschlag D0 zuruecksetzen
-           // lcd_gotoxy(12,3);
-           // lcd_puts("    ");
+            lcd_gotoxy(16,3);
+            lcd_puts("  ");
 
         }
       }
@@ -2096,6 +2103,7 @@ uint16_t count=0;
                      if (cncstatus & (1<<GO_HOME))
                      {
                         homestatus |= (1<<COUNT_A);
+          //              motorstatus |= (1<< COUNT_C);
                      }
 
                       cli();
@@ -2200,7 +2208,7 @@ uint16_t count=0;
          CounterB = DelayB;
          StepCounterB--;
          
-         if (StepCounterB ==0 && (motorstatus & (1<< COUNT_B))) // Motor B ist relevant fuer Stepcount 
+         if (StepCounterB == 0 && (motorstatus & (1<< COUNT_B))) // Motor B ist relevant fuer Stepcount 
          {
             //StepCounterA=0;
             //lcd_putc('-');
@@ -2210,6 +2218,7 @@ uint16_t count=0;
                if (cncstatus & (1<<GO_HOME))
                {
                   homestatus |= (1<<COUNT_B);
+            //      motorstatus |= (1<< COUNT_C);
                }
 
                cli();
