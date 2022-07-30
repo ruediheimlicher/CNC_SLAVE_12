@@ -983,7 +983,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
       if (!(anschlagstatus &(1<< (END_A0 + motor)))) // Bit noch nicht gesetzt
       {
          cli();
-         
+         PWM = 0;
          anschlagstatus |= (1<< (END_A0 + motor));      // Bit fuer Anschlag A0+motor setzen
          //anschlagstatus |= (1<< (END_A0 + motor + 4)); 
    
@@ -1820,6 +1820,16 @@ uint16_t count=0;
     //           sendbuffer[8]= versionintl;
     //           sendbuffer[9]= versioninth;
                
+               /* in Mill32
+                // Lage:
+                
+                uint8_t lage = buffer[25];
+                // lage im Ablauf: 
+                // 1: erster Abschnitt
+                // 2: letzter Abschnitt
+                // 0: innerer Abschnitt
+
+                */
                
               
  //              usb_rawhid_send((void*)sendbuffer, 50); // nicht jedes Paket melden
@@ -2212,7 +2222,7 @@ uint16_t count=0;
          CounterB = DelayB;
          StepCounterB--;
          
-         if (StepCounterB == 0 && (motorstatus & (1<< COUNT_B))) // Motor B ist relevant fuer Stepcount 
+         if (StepCounterB == 0 && (motorstatus & (1<< COUNT_B))) // StepCounterB jetzt abgelaufen, Motor B ist relevant fuer Stepcount 
          {
             //StepCounterA=0;
             //lcd_putc('-');
@@ -2373,6 +2383,7 @@ uint16_t count=0;
                   sendbuffer[5]=abschnittnummer;
                   sendbuffer[6]=ladeposition;
                   sendbuffer[22] = cncstatus;
+                  
                   usb_rawhid_send((void*)sendbuffer, 50);
                   sei();
                   
@@ -2432,7 +2443,6 @@ uint16_t count=0;
          
          if (StepCounterD ==0 && (motorstatus & (1<< COUNT_D))) // Motor D ist relevant fuer Stepcount 
          {
-//            STEPPERPORT_2 |= (1<<MD_EN);               // Motor D OFF
             
             //StepCounterC=0;
             // Begin Ringbuffer-Stuff
