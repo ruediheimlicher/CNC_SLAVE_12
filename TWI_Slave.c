@@ -452,14 +452,11 @@ ISR(TIMER2_COMP_vect) // Schaltet Impuls an SERVOPIN0 aus
 
 
 
-//uint8_t  AbschnittLadenVonPosition(uint16_t diePosition)
-
-
 uint8_t  AbschnittLaden_4M(const uint8_t* AbschnittDaten) // 22us
 {
    stopTimer2();
-   lcd_gotoxy(15,0);
-   lcd_puts("    ");
+   //lcd_gotoxy(15,0);
+   //lcd_puts("    ");
    
 	uint8_t returnwert=0;
 // MARK: mark Reihenfolge der Daten
@@ -759,217 +756,7 @@ uint8_t  AbschnittLaden_4M(const uint8_t* AbschnittDaten) // 22us
    return returnwert;
 }
 
-uint8_t  AbschnittLaden(const uint8_t* AbschnittDaten)
-{
-   
-	uint8_t returnwert=0;
-	/*			
-	 Reihenfolge der Daten:
-	 schrittexl"
-	 schrittexh"
-	 schritteyl"
-	 schritteyh"
-	 delayxl"
-	 delayxh"
-	 delayyl"
-	 delayyh"
-	 code"
-    position   Beschreibung der Lage im Schnittpolygon: first, last
-    
-    
-	 */			
-	int lage = 0;
-   lage = AbschnittDaten[9]; // Start: 1, innerhalb: 0, Ende: 2
-	if (lage & 0x01)
-   {
-      returnwert=1;
-   }
-   if (lage & 0x02) // letztes Element
-   {
-      returnwert=2;
-   }
-   uint8_t dataL=0;
-	uint8_t dataH=0;
-	
-	uint8_t delayL=0;
-	uint8_t delayH=0;
 
-   
-	// Motor A
-
-//	STEPPERPORT_1 &= ~(1<<MA_EN); // Pololu ON
-   
-
-	
-	dataL=AbschnittDaten[0];
-	dataH=AbschnittDaten[1];
-	
-	//lcd_gotoxy(18,0);
-	if (dataH & (0x80)) // Bit 7 gesetzt, negative zahl
-	{
-		richtung |= (1<<RICHTUNG_A); // Rueckwarts
-		STEPPERPORT_1 &= ~(1<< MA_RI);
- 
-		
-	}
-	else 
-	{
-		richtung &= ~(1<<RICHTUNG_A);
-		STEPPERPORT_1 |= (1<< MA_RI);
-		//lcd_putc('v');	// Vorwaerts
-   }   
-	
-	dataH &= (0x7F);
-	StepCounterA= dataH;		// HByte
-	StepCounterA <<= 8;		// shift 8
-	StepCounterA += dataL;	// +LByte
-   
-	
-	delayL=AbschnittDaten[4];
-	delayH=AbschnittDaten[5];
-	
-	
-	DelayA = delayH;
-	DelayA <<=8;
-	DelayA += delayL;
-   
-   
-//   CounterA = DelayA;
-   
-	// Motor B
-	//STEPPERPORT_1 |= (1<<MB_EN);
-//	STEPPERPORT_1 &= ~(1<<MB_EN);	// Pololu ON
-   
-	dataL=AbschnittDaten[2];
-	dataH=AbschnittDaten[3];
-  
-	if (dataH & (0x80)) // Bit 7 gesetzt, negative zahl
-	{
-		richtung |= (1<<RICHTUNG_B); // Rueckwarts
-		STEPPERPORT_1 &= ~(1<< MB_RI);
-   }
-	else 
-	{
-		richtung &= ~(1<<RICHTUNG_B);
-		STEPPERPORT_1 |= (1<< MB_RI);
-	
-   
-   }
-	
-	dataH &= (0x7F);
-	StepCounterB= dataH;		// HByte
-	StepCounterB <<= 8;		// shift 8
-	StepCounterB += dataL;	// +LByte
-	
-	DelayB = (AbschnittDaten[7]<<8)+ AbschnittDaten[6];
-   
-//   CounterB = DelayB;
-   
-   
-   if (StepCounterA > StepCounterB) // Hoeherer Wert setzt relevante Zaehlvariable
-   {
-      motorstatus |= (1 << COUNT_A); // Schritte von Motor A zaehlen 
-      motorstatus &= ~(1 << COUNT_B);// Bit von Motor B zuruecksetzen
-      //lcd_putc('A');
-   }
-   else
-   {
-      motorstatus |= (1 << COUNT_B); // Schritte von Motor B zaehlen 
-      motorstatus &= ~(1 << COUNT_A);// Bit von Motor A zuruecksetzen
-      //lcd_putc('B');
-   }
-   
-   
- //  return returnwert;
- //
-   // Motor C
-//	STEPPERPORT_2 &= ~(1<<MC_EN); // Pololu ON
-	//CounterC=0;
-//	dataL=0;
-//	dataH=0;
-	
-//	delayL=0;
-//	delayH=0;
-	
-	dataL=AbschnittDaten[8];
-	dataH=AbschnittDaten[9];
-   
-	//richtung=0;
-	if (dataH & (0x80)) // Bit 7 gesetzt, negative zahl
-	{
-		richtung |= (1<<RICHTUNG_C); // Rueckwarts
-		STEPPERPORT_2 &= ~(1<< MC_RI);
-	}
-	else 
-	{
-		richtung &= ~(1<<RICHTUNG_C);
-		STEPPERPORT_2 |= (1<< MC_RI);
-	}
-	
-	dataH &= (0x7F);
-	StepCounterC = dataH;		// HByte
-	StepCounterC <<= 8;		// shift 8
-	StepCounterC += dataL;	// +LByte
-   
-	
-	delayL=AbschnittDaten[12];
-	delayH=AbschnittDaten[13];
-   
-	DelayC = delayH;
-	DelayC <<=8;
-	DelayC += delayL;
-   
-//   CounterC = DelayC;
-   
-   // Motor D
-//	STEPPERPORT_2 &= ~(1<<MD_EN); // Pololu ON
-	//CounterD=0;
-//	dataL=0;
-//	dataH=0;
-	
-//	delayL = 0;
-//	delayH = 0;
-	
-	dataL = AbschnittDaten[10];
-	dataH = AbschnittDaten[11];
-   
-	if (dataH & (0x80)) // Bit 7 gesetzt, negative zahl
-	{
-		richtung |= (1<<RICHTUNG_D); // Rueckwarts
-		STEPPERPORT_2 &= ~(1<< MD_RI);
-		//lcd_putc('r');
-	}
-	else 
-	{
-		richtung &= ~(1<<RICHTUNG_D);
-		STEPPERPORT_2 |= (1<< MD_RI);
-	}
-	
-	dataH &= (0x7F);
-	StepCounterD= dataH;		// HByte
-	StepCounterD <<= 8;		// shift 8
-	StepCounterD += dataL;	// +LByte
-	
-	delayL=AbschnittDaten[14];
-	delayH=AbschnittDaten[15];
-   
-	DelayD = delayH;
-	DelayD <<= 8;
-	DelayD += delayL;
-   
-   CounterA = DelayA;
-   CounterB = DelayB;
-   CounterC = DelayC;
-   CounterD = DelayD;
-
-
-  	STEPPERPORT_1 &= ~(1<<MA_EN); // Pololu ON
-   STEPPERPORT_1 &= ~(1<<MB_EN); // Pololu ON
-   STEPPERPORT_2 &= ~(1<<MC_EN); // Pololu ON
-   STEPPERPORT_2 &= ~(1<<MD_EN); // Pololu ON
-   
-     return returnwert;
-}
 
 
 
@@ -992,7 +779,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
          if (cncstatus & (1<<GO_HOME)) // nur eigene Seite abstellen
          {
    // ********************************* Start HOME *****************
-            // Zuerst kommt der Schlitten am Anschalg A oder C an
+            // Zuerst kommt der Schlitten am Anschlag A oder C an (waagrecht)
             
             lcd_gotoxy(15,0);
             lcd_puts("home");
@@ -1056,7 +843,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
                   lcd_gotoxy(6,3);
                   lcd_puts("C0");
                   StepCounterC=0; 
-                  StepCounterD=0;
+                  //StepCounterD=0;
                   if (anschlagstatus &(1<< END_D0)) // Anschlag von Motor D, NACH Motor C
                   {
                      lcd_gotoxy(8,3);
@@ -2167,7 +1954,7 @@ uint16_t count=0;
                         sendbuffer[6]=ladeposition;
                         //sendbuffer[7]=(ladeposition & 0xFF00) >> 8;
                         sendbuffer[22] = cncstatus;
-                        // TODO: ev.  A0 setzen
+                        // TODO : ev.  A0 setzen
                         sendbuffer[0]=0xA1;
                         usb_rawhid_send((void*)sendbuffer, 50);
                      }
@@ -2208,7 +1995,7 @@ uint16_t count=0;
             
         }
         */
-      // MARK: mark Motor B
+      // MARK: Motor B
       // **************************************
       // * Motor B *
       // **************************************
@@ -2313,7 +2100,7 @@ uint16_t count=0;
       // End Motor B
       
       // Begin Motor C
-// MARK: mark Motor C
+// MARK: Motor C
       // **************************************
       // * Motor C *
       // **************************************
@@ -2428,7 +2215,7 @@ uint16_t count=0;
          }
       }
          sei();
-      // MARK: mark Motor D
+      // MARK: Motor D
         // **************************************
       // * Motor D *
       // **************************************
@@ -2525,9 +2312,6 @@ uint16_t count=0;
             STEPPERPORT_2 |= (1<<MD_EN);               // Motor D OFF
             
          }
-         
-         
-         
       }
       sei(); 
       // End Motor D
