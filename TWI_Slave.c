@@ -1426,6 +1426,21 @@ uint16_t count=0;
             }break;
                
                
+            case   0xC2: // pfeiltaste mouseup
+            {
+               StepCounterA = 0;
+               StepCounterB = 0;
+               StepCounterC = 0;
+               StepCounterD = 0;
+               ringbufferstatus = 0;
+               cncstatus = 0;
+               motorstatus = 0;
+
+
+            }break;
+
+               
+               
             case 0xE2: // DC ON_OFF: Temperatur Schneiddraht setzen
             {
                PWM = buffer[20];
