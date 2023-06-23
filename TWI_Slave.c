@@ -128,6 +128,9 @@ volatile uint8_t liniencounter= 0;
 
 // Seite 1
 
+#define MOTOR_A         0
+#define MOTOR_B         1
+
 #define STEPPERPORT_1	PORTC
 #define STEPPERDDR_1    DDRC
 #define STEPPERPIN_1    PINC
@@ -145,6 +148,10 @@ volatile uint8_t liniencounter= 0;
 
 
 // Seite 2
+
+#define MOTOR_C         2
+#define MOTOR_D         3
+
 
 #define STEPPERPORT_2      PORTB
 #define STEPPERDDR_2       DDRB
@@ -782,7 +789,6 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
          cli();
          PWM = 0;
          anschlagstatus |= (1<< (END_A0 + motor));      // Bit fuer Anschlag A0+motor setzen
-         //anschlagstatus |= (1<< (END_A0 + motor + 4)); 
    
         // NSLog(@"anschlagstatus gesetzt: %d cncstatus: %d" anschlagstatus, cncstatus);
          if (cncstatus & (1<<GO_HOME)) // nur eigene Seite abstellen
@@ -1872,9 +1878,9 @@ uint16_t count=0;
       
       if ((STEPPERPIN_1 & (1<< END_A0_PIN)) ) // Eingang ist HI, Schlitten nicht am Anschlag A0
       {
-         if (anschlagstatus &(1<< END_A0))
+         if (anschlagstatus &(1<< MOTOR_A))
          {
-            anschlagstatus &= ~(1<< END_A0); // Bit fuer Anschlag A0 zuruecksetzen
+            anschlagstatus &= ~(1<< MOTOR_A); // Bit fuer Anschlag A0 zuruecksetzen
             //lcd_gotoxy(12,2);
             //lcd_puts("  ");
 
@@ -1884,20 +1890,20 @@ uint16_t count=0;
       {    
          
          
-         homerapportstatus |= (1<<0);
-         if(anschlagstatusArray[0] == 0)
+         homerapportstatus |= (1<<MOTOR_A);
+         if(anschlagstatusArray[MOTOR_A] == 0)
          {
            // lcd_gotoxy(12,2);
             //lcd_putc('A');
             //lcd_putc('0');
-            anschlagstatusArray[0] = 1;
+            anschlagstatusArray[MOTOR_A] = 1;
          }
          
-         if(homeanschlagstatusArray[0] == 0)
+         if(homeanschlagstatusArray[MOTOR_A] == 0)
          {
-            homeanschlagstatusArray[0] = 1;
+            homeanschlagstatusArray[MOTOR_A] = 1;
          }
-         AnschlagVonMotor(0);
+         AnschlagVonMotor(MOTOR_A);
       }
       
       
@@ -1907,9 +1913,9 @@ uint16_t count=0;
       // Anschlag B0
       if ((STEPPERPIN_1 & (1<< END_B0_PIN)) ) // Schlitten nicht am Anschlag B0
       {
-         if (anschlagstatus &(1<< END_B0))
+         if (anschlagstatus &(1<< MOTOR_B))
          {
-            anschlagstatus &= ~(1<< END_B0); // Bit fuer Anschlag B0 zuruecksetzen
+            anschlagstatus &= ~(1<< MOTOR_B); // Bit fuer Anschlag B0 zuruecksetzen
             //lcd_gotoxy(16,2);
             //lcd_puts("  ");
 
@@ -1917,22 +1923,22 @@ uint16_t count=0;
       }
       else // Schlitten bewegte sich auf Anschlag zu und ist am Anschlag B0
       {
-          homerapportstatus |= (1<<1);
-         if(anschlagstatusArray[1] == 0)
+          homerapportstatus |= (1<<MOTOR_B);
+         if(anschlagstatusArray[MOTOR_B] == 0)
          {
-            anschlagstatusArray[1] = 1;
+            anschlagstatusArray[MOTOR_B] = 1;
             //lcd_gotoxy(16,2);
             //lcd_putc('B');
             //lcd_putc('0');
 
          }
 
-         if(homeanschlagstatusArray[1] == 0)
+         if(homeanschlagstatusArray[MOTOR_B] == 0)
          {
-            homeanschlagstatusArray[1] = 1;
+            homeanschlagstatusArray[MOTOR_B] = 1;
          }
 
-         AnschlagVonMotor(1);
+         AnschlagVonMotor(MOTOR_B);
       } // end Anschlag B0
       
       // End Anschlag B
@@ -1945,9 +1951,9 @@ uint16_t count=0;
       // Anschlag C0
       if ((STEPPERPIN_2 & (1<< END_C0_PIN)) ) // Eingang ist HI, Schlitten nicht am Anschlag C0
       {
-         if (anschlagstatus &(1<< END_C0))
+         if (anschlagstatus &(1<< MOTOR_C))
          {
-            anschlagstatus &= ~(1<< END_C0); // Bit fuer Anschlag C0 zuruecksetzen
+            anschlagstatus &= ~(1<< MOTOR_C); // Bit fuer Anschlag C0 zuruecksetzen
            // lcd_gotoxy(12,3);
            // lcd_puts("  ");
 
@@ -1956,22 +1962,22 @@ uint16_t count=0;
       }
       else // Schlitten bewegte sich auf Anschlag zu und ist am Anschlag C0
       {
-         homerapportstatus |= (1<<2);
-         if(anschlagstatusArray[2] == 0)
+         homerapportstatus |= (1<<MOTOR_C);
+         if(anschlagstatusArray[MOTOR_C] == 0)
          {
-            anschlagstatusArray[2] = 1;
+            anschlagstatusArray[MOTOR_C] = 1;
            // lcd_gotoxy(12,3);
             //  lcd_putc('C');
             //  lcd_putc('0');
 
          }
 
-         if(homeanschlagstatusArray[2] == 0)
+         if(homeanschlagstatusArray[MOTOR_C] == 0)
          {
-            homeanschlagstatusArray[2] = 1;
+            homeanschlagstatusArray[MOTOR_C] = 1;
          }
 
-         AnschlagVonMotor(2);
+         AnschlagVonMotor(MOTOR_C);
       }
       
       // ***************
@@ -1981,9 +1987,9 @@ uint16_t count=0;
       // Anschlag D0
       if ((STEPPERPIN_2 & (1<< END_D0_PIN)) ) // Schlitten nicht am Anschlag D0
       {
-         if (anschlagstatus &(1<< END_D0))
+         if (anschlagstatus &(1<< MOTOR_D))
          {
-            anschlagstatus &= ~(1<< END_D0); // Bit fuer Anschlag D0 zuruecksetzen
+            anschlagstatus &= ~(1<< MOTOR_D); // Bit fuer Anschlag D0 zuruecksetzen
             //  lcd_gotoxy(16,3);
             //  lcd_puts("  ");
 
@@ -1991,22 +1997,22 @@ uint16_t count=0;
       }
       else // Schlitten bewegte sich auf Anschlag zu und ist am Anschlag D0
       {
-         homerapportstatus |= (1<<3);
-         if(anschlagstatusArray[3] == 0)
+         homerapportstatus |= (1<<MOTOR_D);
+         if(anschlagstatusArray[MOTOR_D] == 0)
          {
-            anschlagstatusArray[3] = 1;
+            anschlagstatusArray[MOTOR_D] = 1;
             // lcd_gotoxy(16,3);
             // lcd_putc('D');
             // lcd_putc('0');
 
          }
 
-         if(homeanschlagstatusArray[3] == 0)
+         if(homeanschlagstatusArray[MOTOR_D] == 0)
          {
-            homeanschlagstatusArray[3] = 1;
+            homeanschlagstatusArray[MOTOR_D] = 1;
          }
 
-         AnschlagVonMotor(3);
+         AnschlagVonMotor(MOTOR_D);
       }
 
 // MARK: Motor A    
