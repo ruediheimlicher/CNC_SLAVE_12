@@ -785,16 +785,15 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
          //anschlagstatus |= (1<< (END_A0 + motor + 4)); 
    
         // NSLog(@"anschlagstatus gesetzt: %d cncstatus: %d" anschlagstatus, cncstatus);
-         //cncstatus |=  (1<<GO_HOME);
          if (cncstatus & (1<<GO_HOME)) // nur eigene Seite abstellen
          {
             // ********************************* Start HOME *****************
             // Zuerst kommt der Schlitten am Anschlag A oder C an (waagrecht)
             
-            if(homeanschlagstatusArray[motor] == 1)
+           if(homeanschlagstatusArray[motor] == 1)
            {
-              lcd_gotoxy(15,0);
-              lcd_puts("home");
+             // lcd_gotoxy(15,0);
+              //lcd_puts("home");
            }
            // Zuerst horizonal auf Anschlag
             switch (motor) // Stepperport 1
@@ -805,10 +804,6 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
                }
                                     
             }//switch motor
-            //lcd_gotoxy(10,1);
-            //lcd_putc('L');
-            //lcd_putint2(ladeposition);
-            
             sendbuffer[0]=0xB5 + motor; // HOME Ankunft melden
             cncstatus |= (1<<motor); 
             
@@ -818,10 +813,11 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             {
                if(homeanschlagstatusArray[motor] == 1)
                {
+                  /*
                   lcd_gotoxy(0,2);
-                  
                   lcd_puts("P1 M");
                   lcd_putint1(motor);
+                   */
                }
 
                STEPPERPORT_1 |= (1<<(MA_EN + motor));     // Motor 0 ODER 1 OFF // andere Richtung kommt anschliessend von master
@@ -830,8 +826,10 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
                {
                   if(homeanschlagstatusArray[motor] == 1)
                   {
+                     /*
                      lcd_gotoxy(6,3);
                      lcd_puts("A0");
+                      */
                   }
                   StepCounterA=0; 
                   //motorstatus &= ~(1<< motor); // relevanter motor weg
@@ -840,8 +838,10 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
                   {
                      if(homeanschlagstatusArray[motor] == 1)
                      {
+                        /*
                         lcd_gotoxy(8,3);
                         lcd_puts("B0");
+                         */
                      }
                      //StepCounterB=0; 
                   }
@@ -856,9 +856,11 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             {
                if(homeanschlagstatusArray[motor] == 1)
                {
+                  /*
                   lcd_gotoxy(0,3);
                   lcd_puts("P2 M");
                   lcd_putint1(motor);
+                   */
                }
                
 
@@ -869,8 +871,8 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
                {
                   if(homeanschlagstatusArray[motor] == 1)
                   {
-                     lcd_gotoxy(6,3);
-                     lcd_puts("C0");
+                     //lcd_gotoxy(6,3);
+                     //cd_puts("C0");
                   }
                   StepCounterC=0; 
                   //motorstatus &= ~(1<< motor); // relevanter motor weg
@@ -879,8 +881,8 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
                   {
                      if(homeanschlagstatusArray[motor] == 1)
                      {
-                        lcd_gotoxy(8,3);
-                        lcd_puts("D0");
+                        //lcd_gotoxy(8,3);
+                        //lcd_puts("D0");
                      }
                      //StepCounterD=0; 
                   }
@@ -906,7 +908,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             sendbuffer[8]=ladeposition;
             sendbuffer[22] = cncstatus;
             sendbuffer[19] = anschlagstatus;
-            
+            /*
             sendbuffer[23] = (StepCounterA & 0xFF0)>>8;
             sendbuffer[24] = StepCounterA & 0x00FF;
             sendbuffer[25] = (StepCounterB & 0xFF0)>>8;
@@ -915,16 +917,18 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             sendbuffer[28] = StepCounterC & 0x00FF;
             sendbuffer[29] = (StepCounterD & 0xFF0)>>8;
             sendbuffer[30] = StepCounterD & 0x00FF;
+             */
            // if(homerapportstatus & (1<<motor))
             if(homeanschlagstatusArray[motor] == 1) // erster homeanschlag
             {
               // lcd_gotoxy(0,0);
-               lcd_puts("code ");
-               lcd_gotoxy(6+motor,0);
-               lcd_puthex(sendbuffer[0]);
+              // lcd_puts("code ");
+              // lcd_gotoxy(6+motor,0);
+             //  lcd_puthex(sendbuffer[0]);
 
                usb_rawhid_send((void*)sendbuffer, 50); // 220518 diff
                homeanschlagstatusArray[motor] = 2; // erledigt
+               
                //homerapportstatus &= ~(1<<motor);
             }
             if(homeanschlagstatusArray[motor] == 2) // zweiter homeanschlag
@@ -1635,6 +1639,13 @@ uint16_t count=0;
                   sendbuffer[22] = cncstatus;
                   sendbuffer[13]= 1; // home
                   ringbufferstatus |= (1<<LASTBIT);
+                  
+                  homeanschlagstatusArray[0] = 0;
+                  homeanschlagstatusArray[1] = 0;
+                  homeanschlagstatusArray[2] = 0;
+                  homeanschlagstatusArray[3] = 0;
+                  
+                  
                   // Daten vom buffer in CNCDaten laden
                   {
                      uint8_t pos=0;
@@ -1864,8 +1875,8 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_A0))
          {
             anschlagstatus &= ~(1<< END_A0); // Bit fuer Anschlag A0 zuruecksetzen
-            lcd_gotoxy(12,2);
-            lcd_puts("  ");
+            //lcd_gotoxy(12,2);
+            //lcd_puts("  ");
 
          }
       }
@@ -1876,11 +1887,12 @@ uint16_t count=0;
          homerapportstatus |= (1<<0);
          if(anschlagstatusArray[0] == 0)
          {
-            lcd_gotoxy(12,2);
-            lcd_putc('A');
-            lcd_putc('0');
+           // lcd_gotoxy(12,2);
+            //lcd_putc('A');
+            //lcd_putc('0');
             anschlagstatusArray[0] = 1;
          }
+         
          if(homeanschlagstatusArray[0] == 0)
          {
             homeanschlagstatusArray[0] = 1;
@@ -1898,8 +1910,8 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_B0))
          {
             anschlagstatus &= ~(1<< END_B0); // Bit fuer Anschlag B0 zuruecksetzen
-            lcd_gotoxy(16,2);
-            lcd_puts("  ");
+            //lcd_gotoxy(16,2);
+            //lcd_puts("  ");
 
          }
       }
@@ -1909,9 +1921,9 @@ uint16_t count=0;
          if(anschlagstatusArray[1] == 0)
          {
             anschlagstatusArray[1] = 1;
-            lcd_gotoxy(16,2);
-            lcd_putc('B');
-            lcd_putc('0');
+            //lcd_gotoxy(16,2);
+            //lcd_putc('B');
+            //lcd_putc('0');
 
          }
 
@@ -1936,8 +1948,8 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_C0))
          {
             anschlagstatus &= ~(1<< END_C0); // Bit fuer Anschlag C0 zuruecksetzen
-            lcd_gotoxy(12,3);
-            lcd_puts("  ");
+           // lcd_gotoxy(12,3);
+           // lcd_puts("  ");
 
 
          }         
@@ -1948,9 +1960,9 @@ uint16_t count=0;
          if(anschlagstatusArray[2] == 0)
          {
             anschlagstatusArray[2] = 1;
-            lcd_gotoxy(12,3);
-            lcd_putc('C');
-            lcd_putc('0');
+           // lcd_gotoxy(12,3);
+            //  lcd_putc('C');
+            //  lcd_putc('0');
 
          }
 
@@ -1972,8 +1984,8 @@ uint16_t count=0;
          if (anschlagstatus &(1<< END_D0))
          {
             anschlagstatus &= ~(1<< END_D0); // Bit fuer Anschlag D0 zuruecksetzen
-            lcd_gotoxy(16,3);
-            lcd_puts("  ");
+            //  lcd_gotoxy(16,3);
+            //  lcd_puts("  ");
 
         }
       }
@@ -1983,9 +1995,9 @@ uint16_t count=0;
          if(anschlagstatusArray[3] == 0)
          {
             anschlagstatusArray[3] = 1;
-            lcd_gotoxy(16,3);
-            lcd_putc('D');
-            lcd_putc('0');
+            // lcd_gotoxy(16,3);
+            // lcd_putc('D');
+            // lcd_putc('0');
 
          }
 
@@ -2014,10 +2026,7 @@ uint16_t count=0;
                CounterA = DelayA;                     // CounterA zuruecksetzen fuer neuen Impuls
                
                StepCounterA--;
-               
-               
-               
-               
+                 
                
                // Wenn StepCounterA nach decrement abgelaufen und relevant: next Datenpaket abrufen
                if (StepCounterA == 0 && (motorstatus & (1<< COUNT_A)))    // Motor A ist relevant fuer Stepcount
