@@ -776,6 +776,7 @@ uint8_t  AbschnittLaden_4M(const uint8_t* AbschnittDaten) // 22us
 
 
 
+// MARK: AnschlagVonMotor
 
 void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
 {
@@ -783,12 +784,11 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
    if (richtung & (1<<(RICHTUNG_A + motor))) // Richtung war auf Anschlag A0 zu         
    {
       anschlagcounter ++;
-       // MARK: END_A0 + motor
-      if (!(anschlagstatus &(1<< (END_A0 + motor)))) // Bit noch nicht gesetzt
+      if (!(anschlagstatus &(1<< (motor)))) // Bit noch nicht gesetzt
       {
          cli();
          PWM = 0;
-         anschlagstatus |= (1<< (END_A0 + motor));      // Bit fuer Anschlag A0+motor setzen
+         anschlagstatus |= (1<< (motor));      // Bit fuer Anschlag A0+motor setzen
    
         // NSLog(@"anschlagstatus gesetzt: %d cncstatus: %d" anschlagstatus, cncstatus);
          if (cncstatus & (1<<GO_HOME)) // nur eigene Seite abstellen
@@ -802,52 +802,73 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
               //lcd_puts("home");
            }
            // Zuerst horizonal auf Anschlag
+                sendbuffer[0]=0xB5 + motor; // HOME Ankunft melden
+            cncstatus |= (1<<motor); 
+            
             switch (motor) // Stepperport 1
             {
                case 0:
                {
-                  
-               }
+                  STEPPERPORT_1 |= (1<<(MA_EN));   
+                  StepCounterA=0; 
+               }break;
+                  case 1:
+               {
+                  STEPPERPORT_1 |= (1<<(MB_EN));   
+                  StepCounterB=0; 
+                 
+               }break;
+               case 2:
+            {
+               STEPPERPORT_2 |= (1<<(MC_EN));   
+               StepCounterB=0; 
+              
+            }break;
+               case 3:
+            {
+               STEPPERPORT_2 |= (1<<(MD_EN));   
+               StepCounterD=0; 
+              
+            }break;
                                     
             }//switch motor
-            sendbuffer[0]=0xB5 + motor; // HOME Ankunft melden
-            cncstatus |= (1<<motor); 
-            
-            
-             
+
+            /*
+             // *
             if (motor<2) // Stepperport 1
             {
                if(homeanschlagstatusArray[motor] == 1)
                {
-                  /*
+                  
                   lcd_gotoxy(0,2);
                   lcd_puts("P1 M");
                   lcd_putint1(motor);
-                   */
+                   
                }
 
+               
                STEPPERPORT_1 |= (1<<(MA_EN + motor));     // Motor 0 ODER 1 OFF // andere Richtung kommt anschliessend von master
                
-               if (anschlagstatus &(1<< END_A0)) // Anschlag von Motor A               
+               if (anschlagstatus &(1<< motor)) // Anschlag von Motor A               
                {
                   if(homeanschlagstatusArray[motor] == 1)
                   {
-                     /*
+                     
                      lcd_gotoxy(6,3);
                      lcd_puts("A0");
-                      */
+                      
                   }
                   StepCounterA=0; 
                   //motorstatus &= ~(1<< motor); // relevanter motor weg
                   //StepCounterB=0; 
-                  if (anschlagstatus &(1<< END_B0)) // Anschlag von Motor B, NACH Motor A
+                  if (anschlagstatus &(1<< motor)) // Anschlag von Motor B, NACH Motor A
                   {
                      if(homeanschlagstatusArray[motor] == 1)
                      {
-                        /*
+                        
                         lcd_gotoxy(8,3);
                         lcd_puts("B0");
-                         */
+                         
                      }
                      //StepCounterB=0; 
                   }
@@ -862,18 +883,18 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             {
                if(homeanschlagstatusArray[motor] == 1)
                {
-                  /*
+                  /
                   lcd_gotoxy(0,3);
                   lcd_puts("P2 M");
                   lcd_putint1(motor);
-                   */
+                   *
                }
                
 
                STEPPERPORT_2 |= (1<<(MA_EN + motor));     // Motor 2,3 OFF
                //STEPPERPORT_1 |= (1<<(MA_EN + motor - 2)); // Paralleler Motor 0,1 OFF
                
-               if (anschlagstatus &(1<< END_C0)) // Anschlag von Motor C               
+               if (anschlagstatus &(1<< motor)) // Anschlag von Motor C               
                {
                   if(homeanschlagstatusArray[motor] == 1)
                   {
@@ -883,7 +904,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
                   StepCounterC=0; 
                   //motorstatus &= ~(1<< motor); // relevanter motor weg
                   //StepCounterD=0;
-                  if (anschlagstatus &(1<< END_D0)) // Anschlag von Motor D, NACH Motor C
+                  if (anschlagstatus &(1<< motor)) // Anschlag von Motor D, NACH Motor C
                   {
                      if(homeanschlagstatusArray[motor] == 1)
                      {
@@ -899,6 +920,8 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
                //               CounterD=0xFFFF;
                
             }
+      */
+            // *
     //        cncstatus &= ~(1<<GO_HOME);
             //ladeposition=0;
     //        AbschnittCounter++;
@@ -914,17 +937,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
             sendbuffer[8]=ladeposition;
             sendbuffer[22] = cncstatus;
             sendbuffer[19] = anschlagstatus;
-            /*
-            sendbuffer[23] = (StepCounterA & 0xFF0)>>8;
-            sendbuffer[24] = StepCounterA & 0x00FF;
-            sendbuffer[25] = (StepCounterB & 0xFF0)>>8;
-            sendbuffer[26] = StepCounterB & 0x00FF;
-            sendbuffer[27] = (StepCounterC & 0xFF0)>>8;
-            sendbuffer[28] = StepCounterC & 0x00FF;
-            sendbuffer[29] = (StepCounterD & 0xFF0)>>8;
-            sendbuffer[30] = StepCounterD & 0x00FF;
-             */
-           // if(homerapportstatus & (1<<motor))
+ 
             if(homeanschlagstatusArray[motor] == 1) // erster homeanschlag
             {
               // lcd_gotoxy(0,0);
@@ -933,7 +946,7 @@ void AnschlagVonMotor(const uint8_t motor) // Schlitten ist am Anschlag
              //  lcd_puthex(sendbuffer[0]);
 
                usb_rawhid_send((void*)sendbuffer, 50); // 220518 diff
-               homeanschlagstatusArray[motor] = 2; // erledigt
+               homeanschlagstatusArray[motor] = 2; // 1. Anschlag erledigt
                
                //homerapportstatus &= ~(1<<motor);
             }
@@ -1559,7 +1572,8 @@ uint16_t count=0;
                AbschnittCounter=0;
                
             }break;
-               
+
+// MARK: F1               
             case 0xF1: // reset
             {
                uint8_t i=0, k=0;
